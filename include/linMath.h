@@ -3,6 +3,7 @@
 //
 #include <complex>
 #include <vector>
+#include <cmath>
 
 #include "simpleStruct.h"
 
@@ -53,6 +54,56 @@ namespace LinMath {
     }
     inline void culcNormal(simpleStruct::Poligon& pol) {
         pol.normal = LinMath::normolise(LinMath::vecProd(pol.point1, pol.point2, pol.point3));
+    }
+    inline simpleStruct::Vector rotationVecX(const simpleStruct::Vector& vec1, float radians) {
+        float cosA = std::cos(radians);
+        float sinA = std::sin(radians);
+
+        return LinMath::normolise(simpleStruct::Vector({
+            vec1.x,
+            vec1.y * cosA - vec1.z * sinA,
+            vec1.y * sinA + vec1.z * cosA
+        }));
+    }
+
+    // Поворот вокруг оси Y (изменяются только X и Z)
+    inline simpleStruct::Vector rotationVecY(const simpleStruct::Vector& vec1, float radians) {
+        float cosA = std::cos(radians);
+        float sinA = std::sin(radians);
+
+        return LinMath::normolise(simpleStruct::Vector({
+            vec1.x * cosA + vec1.z * sinA,
+            vec1.y,
+            -vec1.x * sinA + vec1.z * cosA
+        }));
+    }
+
+    inline simpleStruct::Vector rotationVecZ(const simpleStruct::Vector& vec1, float radians) {
+        float cosA = std::cos(radians);
+        float sinA = std::sin(radians);
+
+        return LinMath::normolise(simpleStruct::Vector({
+            vec1.x * cosA - vec1.y * sinA,
+            vec1.x * sinA + vec1.y * cosA,
+            vec1.z
+        }));
+    }
+    inline float conversionToRadian(float degrees) {
+        return degrees * std::numbers::pi / 180.0f;
+    }
+    inline simpleStruct::Vector rotateAroundAxis(const simpleStruct::Vector& v, const simpleStruct::Vector& axis, float radians) {
+        float cosA = std::cos(radians);
+        float sinA = std::sin(radians);
+
+        simpleStruct::Vector cross = vecProd(axis, v);
+
+        float dot = scalarProd(axis, v);
+
+        float resX = v.x * cosA + cross.x * sinA + axis.x * dot * (1.0f - cosA);
+        float resY = v.y * cosA + cross.y * sinA + axis.y * dot * (1.0f - cosA);
+        float resZ = v.z * cosA + cross.z * sinA + axis.z * dot * (1.0f - cosA);
+
+        return simpleStruct::Vector({resX, resY, resZ});
     }
 }
 #endif //ENGINE_LINMATH_H

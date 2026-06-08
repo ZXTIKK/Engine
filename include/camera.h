@@ -47,8 +47,8 @@ namespace engine {
         void goDown();
 
         // rotation
-        void rotateHorizontal();
-        void rotateVertical();
+        void rotateHorizontal(int moveX);
+        void rotateVertical(int moveY);
 
         simpleStruct::Vector getViewVector();
         simpleStruct::Point getPosition();
