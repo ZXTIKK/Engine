@@ -4,6 +4,7 @@
 #include <complex>
 #include <vector>
 #include <cmath>
+#include <optional>
 
 #include "simpleStruct.h"
 
@@ -45,6 +46,9 @@ namespace LinMath {
             vec.z * invLv
         });
     }
+    inline float dot(const simpleStruct::Vector& a, const simpleStruct::Vector& b) {
+        return (float)a.x * (float)b.x + (float)a.y * (float)b.y + (float)a.z * (float)b.z;
+    }
     inline float scalarProd(simpleStruct::Vector vec1, simpleStruct::Vector vec2) {
         if (lenVec(vec1) != 1 || lenVec(vec2) != 1) {
             vec1 = normolise(vec1);
@@ -66,7 +70,6 @@ namespace LinMath {
         }));
     }
 
-    // Поворот вокруг оси Y (изменяются только X и Z)
     inline simpleStruct::Vector rotationVecY(const simpleStruct::Vector& vec1, float radians) {
         float cosA = std::cos(radians);
         float sinA = std::sin(radians);
@@ -104,6 +107,61 @@ namespace LinMath {
         float resZ = v.z * cosA + cross.z * sinA + axis.z * dot * (1.0f - cosA);
 
         return simpleStruct::Vector({resX, resY, resZ});
+    }
+    inline std::optional<simpleStruct::Point2D> projectPoint(const simpleStruct::Point& worldPoint, const simpleStruct::Point cameraPosition, const simpleStruct::Vector cameraViewVec, float f, int cx, int cy) {
+        float tx = worldPoint.x - cameraPosition.x;
+        float ty = worldPoint.y - cameraPosition.y;
+        float tz = worldPoint.z - cameraPosition.z;
+        simpleStruct::Vector t = { tx, ty, tz };
+
+        simpleStruct::Vector forward = LinMath::normolise(cameraViewVec);
+        simpleStruct::Vector right = LinMath::normolise(LinMath::vecProd(forward, {0, 1, 0}));
+        simpleStruct::Vector up = LinMath::vecProd(right, forward);
+
+        float xCam = LinMath::dot(t, right);
+        float yCam = LinMath::dot(t, up);
+        float zCam = LinMath::dot(t, forward);
+
+        if (zCam < 0.1f) {
+            return std::nullopt;
+        }
+
+        int xScreen = static_cast<int>((xCam / zCam) * f + cx);
+        int yScreen = static_cast<int>((yCam / zCam) * f + cy);
+
+        return simpleStruct::Point2D({xScreen, yScreen, zCam});
+    }
+    inline bool isPixelInsideTriangle(int x, int y,
+                           const simpleStruct::Point2D& p0,
+                           const simpleStruct::Point2D& p1,
+                           const simpleStruct::Point2D& p2)
+    {
+        float d1 = (x - p1.x) * (p0.y - p1.y) - (p0.x - p1.x) * (y - p1.y);
+        float d2 = (x - p2.x) * (p1.y - p2.y) - (p1.x - p2.x) * (y - p2.y);
+        float d3 = (x - p0.x) * (p2.y - p0.y) - (p2.x - p0.x) * (y - p0.y);
+
+        bool has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+        bool has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+        return !(has_neg && has_pos);
+    }
+    inline float calculateDepth(int x, int y,
+                     const simpleStruct::Point2D& p0,
+                     const simpleStruct::Point2D& p1,
+                     const simpleStruct::Point2D& p2,
+                     float z0, float z1, float z2)
+    {
+        float denominator = static_cast<float>((p1.y - p2.y) * (p0.x - p2.x) + (p2.x - p1.x) * (p0.y - p2.y));
+
+        if (std::abs(denominator) < 0.000001f) return z0;
+
+        float w0 = static_cast<float>((p1.y - p2.y) * (x - p2.x) + (p2.x - p1.x) * (y - p2.y)) / denominator;
+        float w1 = static_cast<float>((p2.y - p0.y) * (x - p2.x) + (p0.x - p2.x) * (y - p2.y)) / denominator;
+        float w2 = 1.0f - w0 - w1;
+
+        float interpolatedInverseZ = (w0 / z0) + (w1 / z1) + (w2 / z2);
+
+        return 1.0f / interpolatedInverseZ;
     }
 }
 #endif //ENGINE_LINMATH_H

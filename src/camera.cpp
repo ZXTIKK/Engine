@@ -3,10 +3,11 @@
 //
 #include "../include/camera.h"
 
-//make field
+//make in field
 #ifndef SENSITIVITY_CAMERA
-#define SENSITIVITY_CAMERA 1
+#define SENSITIVITY_CAMERA 0.05
 #endif
+
 // Y - high
 
 namespace engine {
@@ -21,14 +22,14 @@ namespace engine {
         vec.y=0;
         vec = LinMath::normolise(vec);
         auto vecRotated = simpleStruct::Vector({vec.z, vec.y, -vec.x});
-        this->position -= vecRotated*this->speed;
+        this->position += vecRotated*this->speed;
     }
     void Camera::goRight() {
         auto vec = this->viewVector;
         vec.y=0;
         vec = LinMath::normolise(vec);
         auto vecRotated = simpleStruct::Vector({vec.z, vec.y, -vec.x});
-        this->position += vecRotated*this->speed;
+        this->position -= vecRotated*this->speed;
     }
     void Camera::goUp() {
         this->position = simpleStruct::Point{this->position.x, this->position.y + this->speed, this->position.z};
@@ -59,5 +60,11 @@ namespace engine {
     }
     simpleStruct::Point Camera::getPosition() {
         return this->position;
+    }
+    float Camera::getFOV() {
+        return this->fov;
+    }
+    void Camera::setFOV(float fov) {
+        this->fov = fov;
     }
 }

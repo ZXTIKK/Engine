@@ -7,12 +7,16 @@
 #include "include/camera.h"
 #include <cmath>
 
+#include "include/render.h"
+
 #ifndef WIDTH_WINDOW
 #define WIDTH_WINDOW 1600
 #endif
+
 #ifndef HEIGHT_WINDOW
 #define HEIGHT_WINDOW 900
 #endif
+
 #ifndef FPS_MAX
 #define FPS_MAX 1000
 #endif
@@ -21,32 +25,44 @@ int main() {
     const unsigned int WIDTH = WIDTH_WINDOW;
     const unsigned int HEIGHT = HEIGHT_WINDOW;
     bool CV = false; //for debug
-    bool currentMousePosition = true;
+    bool currentMousePosition = false;
 
     std::vector<int> d;
 
-    auto camera = engine::Camera(simpleStruct::Vector{1,0,0});
-
-    auto p = simpleStruct::Poligon{
-        {0,1,0},
-        {0,0,0},
-        {0,0,1},
-        {0,0,0},
-        simpleStruct::Color{.r=255,.g=100,.b=100,.a=255},
-    };
-    LinMath::culcNormal(p);
+    auto camera = new engine::Camera(simpleStruct::Vector{1,0,0},simpleStruct::Point{-20,10,10});
+    camera->setFOV(50);
 
     //COMPLETED
     //std::cout << "[TEST] POLIGON NORMAL " << std::endl << p << std::endl;
 
-    sf::RenderWindow window(sf::VideoMode({WIDTH, HEIGHT}), "Engine");
-    window.setMouseCursorVisible(false);
-    window.setFramerateLimit(FPS_MAX);
-    sf::Vector2i windowCenter({ static_cast<int>(window.getSize().x / 2),
-                            static_cast<int>(window.getSize().y / 2) });
-    sf::Image image({WIDTH, HEIGHT}, sf::Color::Black);
-    sf::Texture texture;
-    sf::Sprite sprite(texture);
+    auto* window = new sf::RenderWindow(sf::VideoMode({WIDTH, HEIGHT}), "Engine");
+    window->setMouseCursorVisible(true);
+    window->setFramerateLimit(FPS_MAX);
+    sf::Vector2i windowCenter({ static_cast<int>(window->getSize().x / 2),
+                            static_cast<int>(window->getSize().y / 2) });
+    auto* image = new sf::Image({WIDTH, HEIGHT}, sf::Color::Black);
+    auto* texture = new sf::Texture(*image);
+    auto* sprite = new sf::Sprite(*texture);
+    auto* zBuffer = new ZBuffer(WIDTH, HEIGHT);
+    auto* light = new engine::Light();
+
+    engine::Mesh mesh = engine::Mesh::getCube();
+
+    auto* meshes = new std::vector<engine::Mesh>{mesh};
+    auto* lights = new std::vector<engine::Light>{*light}; // разыменовываем одиночный light
+
+
+
+    auto* render = new engine::Render(
+        camera,
+        window,
+        image,
+        texture,
+        sprite,
+        meshes,
+        lights,
+        zBuffer
+    );
 
     // COMPLETED
     // std::cout << "[TEST] rotation";
@@ -64,61 +80,61 @@ int main() {
     // camera.rotateVertical(90);
     // std::cout << "V 90 \nx: " << camera.getViewVector().x << std::endl << "y: " << camera.getViewVector().y << std::endl<< "z: " << camera.getViewVector().z << std::endl;
 
-    unsigned x = 0;
-    unsigned y = 0;
-    unsigned i = 0;
-    while (window.isOpen()) {
-        sf::Vector2i currentMousePos = sf::Mouse::getPosition(window);
+    while (window->isOpen()) {
+        sf::Vector2i currentMousePos = sf::Mouse::getPosition(*window);
         int deltaX = currentMousePos.x - windowCenter.x;
         int deltaY = currentMousePos.y - windowCenter.y;
 
         if ((deltaX != 0 || deltaY != 0) && currentMousePosition) {
 
             if (deltaX != 0) {
-                camera.rotateHorizontal(deltaX);
+                camera->rotateHorizontal(-deltaX);
+                if (d.size() > 10) {
+                    d.clear();
+                }
                 d.push_back(deltaX);
             }
             if (deltaY != 0) {
-                camera.rotateVertical(deltaY);
+                camera->rotateVertical(-deltaY);
             }
-            sf::Mouse::setPosition(windowCenter, window);
+            sf::Mouse::setPosition(windowCenter, *window);
         }
 
 
 
-        while (const std::optional event = window.pollEvent()) {
+        while (const std::optional event = window->pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
-                window.close();
+                window->close();
             }
             if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
                 if (keyPressed->code == sf::Keyboard::Key::Escape) {
                     currentMousePosition = !currentMousePosition;
-                    window.setMouseCursorVisible(!currentMousePosition);
+                    window->setMouseCursorVisible(!currentMousePosition);
                 }
                 if (keyPressed->code == sf::Keyboard::Key::W) {
-                    camera.goForward();
+                    camera->goForward();
                 }
                 if (keyPressed->code == sf::Keyboard::Key::S) {
-                    camera.goBack();
+                    camera->goBack();
                 }
                 if (keyPressed->code == sf::Keyboard::Key::A) {
-                    camera.goLeft();
+                    camera->goLeft();
                 }
                 if (keyPressed->code == sf::Keyboard::Key::D) {
-                    camera.goRight();
+                    camera->goRight();
                 }
                 if (keyPressed->code == sf::Keyboard::Key::Space) {
-                    camera.goUp();
+                    camera->goUp();
                 }
-                if (keyPressed->code == sf::Keyboard::Key::LShift) {
-                    camera.goDown();
+                if (keyPressed->code == sf::Keyboard::Key::Z) {
+                    camera->goDown();
                 }
 
 
                 // DEBUG
                 if (keyPressed->code == sf::Keyboard::Key::F1) {
                     CV = !CV;
-                    window.setMouseCursorVisible(CV);
+                    window->setMouseCursorVisible(CV);
                 }
                 if (keyPressed->code == sf::Keyboard::Key::F2) {
                     int max = 0;
@@ -129,22 +145,24 @@ int main() {
                     }
                     std::cout << max << std::endl;
                 }
+                if (keyPressed->code == sf::Keyboard::Key::F3) {
+                    camera->rotateHorizontal(180);
+                    camera->rotateVertical(180);
+                }
             }
         }
 
-        image.setPixel({x, y}, sf::Color::Red);
+        render->renderOneFrame();
 
-        if (texture.loadFromImage(image)) {
-            sprite.setTextureRect(sf::IntRect({0, 0}, sf::Vector2i(texture.getSize())));
+        texture->update(image->getPixelsPtr());
+
+        if (texture->loadFromImage(*image)) {
+            window->clear();
+            window->draw(*sprite, sf::RenderStates(sf::BlendAlpha));
         }
 
-        window.clear();
-        window.draw(sprite);
-        window.display();
-        simpleStruct::Vector viewVector = camera.getViewVector();
-        simpleStruct::Point cameraPosition = camera.getPosition();
-       // std::cout << "coord camera:" << std::endl;
-       // std::cout << "x: " << cameraPosition.x << std::endl << "y: " << cameraPosition.y << std::endl << "z: " << cameraPosition.z << std::endl;
+        window->display();
+
     }
 
     return 0;

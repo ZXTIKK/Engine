@@ -4,8 +4,9 @@
 
 #ifndef ENGINE_SIMPLESTRUCT_H
 #define ENGINE_SIMPLESTRUCT_H
-#include "SFML/Graphics/Color.hpp"
+
 #include <concepts>
+#include <iostream>
 // #include "linMath.h"
 
 /*
@@ -13,9 +14,9 @@
  */
 
 namespace simpleStruct {
-
     template <typename T>
     concept arithmetic = std::integral<T> || std::floating_point<T>;
+
     union Color {
         unsigned int rgba;
         struct {
@@ -25,11 +26,12 @@ namespace simpleStruct {
             unsigned char a;
         };
     };
+
     struct Vector {
         float x;
         float y;
         float z;
-        float operator*(const Vector& vector) {
+        float operator*(const Vector& vector) const {
             return x * vector.x + y * vector.y + z * vector.z;
         }
         Vector operator+(const Vector& vector) {
@@ -71,6 +73,7 @@ namespace simpleStruct {
         }
 
     };
+
     //this point for poligon
     struct Point {
         float x;
@@ -133,6 +136,45 @@ namespace simpleStruct {
         }
     };
 
+    struct Point2D {
+        int x;
+        int y;
+        float z;
+
+        Point2D operator+(const Point2D& point2d) {
+            return Point2D(x + point2d.x, y + point2d.y,z);
+        }
+        Point2D operator-(const Point2D& point2d) {
+            return Point2D(x - point2d.x, y - point2d.y,z);
+        }
+        Point2D operator+=(const Point2D& point2d) {
+            x+=point2d.x;
+            y+=point2d.y;
+            return Point2D({x,y,z});
+        }
+        Point2D operator-=(const Point2D& point2d) {
+            x-=point2d.x;
+            y-=point2d.y;
+            return Point2D({x,y,z});
+        }
+        template <arithmetic T>
+        Point2D operator+=(T& value) {
+            x+=value;
+            y+=value;
+            return Point2D({x,y,z});
+        }
+        template <arithmetic T>
+        Point2D operator*=(T& value) {
+            x*=value;
+            y*=value;
+            return Point2D({x,y,z});
+        }
+        template <arithmetic T>
+        Point2D operator*(T& value) {
+            return Point2D({x*value,y*value,z});
+        }
+    };
+
     //this poligon for visual
     struct Poligon {
         Point point1;
@@ -149,6 +191,15 @@ namespace simpleStruct {
            << "  p3: (" << pol.point3.x << ", " << pol.point3.y << ", " << pol.point3.z << ")\n"
            << "  normal: (" << pol.normal.x << ", " << pol.normal.y << ", " << pol.normal.z << ")\n"
            << "  color: RGBA(" << (int)pol.color.r << ", " << (int)pol.color.g << ", " << (int)pol.color.b << ", " << (int)pol.color.a << ")\n"
+           << "]";
+        return os;
+    }
+
+    inline std::ostream& operator<<(std::ostream& os, const Vector& vec) {
+        os << "Vector[\n"
+           << "  x: (" << vec.x << ")\n"
+           << "  y: (" <<  vec.y << ")\n"
+           << "  z: (" << vec.z << ")\n"
            << "]";
         return os;
     }

@@ -4,6 +4,7 @@
 
 #ifndef ENGINE_MESH_H
 #define ENGINE_MESH_H
+
 #include <vector>
 #include "linMath.h"
 #include "simpleStruct.h"
@@ -21,7 +22,13 @@ namespace engine {
 
   public:
     Mesh(std::vector<simpleStruct::Poligon> polygons);
-    ~Mesh();
+    ~Mesh() = default;
+
+    std::vector<simpleStruct::Poligon> getPolygons() const {
+      return polygons;
+    }
+
+    static Mesh getCube();
   };
 }
 #endif //ENGINE_MESH_H

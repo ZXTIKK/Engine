@@ -24,7 +24,11 @@ add_executable(CppProject main.cpp
         include/camera.h
         src/camera.cpp
         src/Mesh.cpp
-        include/light.h)
+        include/light.h
+        src/light.cpp
+        include/render.h
+        src/render.cpp
+        include/zBuffer.h)
 
 target_link_libraries(CppProject PRIVATE
         SFML::Graphics
