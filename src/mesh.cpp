@@ -55,16 +55,16 @@ namespace engine {
         };
 
         simpleStruct::Poligon vsn{
-            simpleStruct::Point{0,0,0},
-            simpleStruct::Point{15,0,15},
             simpleStruct::Point{15,0,0},
+            simpleStruct::Point{15,0,15},
+            simpleStruct::Point{0,0,0},
             simpleStruct::Vector{0,0,0},
             simpleStruct::Color{.r=0,.g=255,.b=0,.a=255}
         };
         simpleStruct::Poligon vsnn{
-            simpleStruct::Point{0,0,0},
-            simpleStruct::Point{0,0,15},
             simpleStruct::Point{15,0,15},
+            simpleStruct::Point{0,0,15},
+            simpleStruct::Point{0,0,0},
             simpleStruct::Vector{0,0,0},
             simpleStruct::Color{.r=0,.g=255,.b=0,.a=255}
         };

@@ -134,6 +134,10 @@ namespace simpleStruct {
             z=vector.z;
             return Point({x,y,z});
         }
+
+        Point operator-( const Point p) const {
+            return Point({x-p.x,y-p.y,z-p.z});
+        }
     };
 
     struct Point2D {
@@ -200,6 +204,14 @@ namespace simpleStruct {
            << "  x: (" << vec.x << ")\n"
            << "  y: (" <<  vec.y << ")\n"
            << "  z: (" << vec.z << ")\n"
+           << "]";
+        return os;
+    }
+
+    inline std::ostream& operator<<(std::ostream& os, Point2D& point) {
+        os << "Vector[\n"
+           << "  x: (" << point.x << ")\n"
+           << "  y: (" <<  point.y << ")\n"
            << "]";
         return os;
     }

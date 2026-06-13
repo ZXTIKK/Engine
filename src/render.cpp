@@ -36,14 +36,18 @@ namespace engine {
     }
 
 
-
     void Render::renderOneFrame() {
         clearScreen();
         zBuffer->clear();
 
         for (const auto& mesh : *meshes) {
             for (const auto& poly : mesh.getPolygons()) {
-                if ((poly.normal * this->camera->getViewVector())>=0.f) {
+                if ((poly.normal * simpleStruct::Vector(
+                    {
+                        this->camera->getPosition().x,
+                        this->camera->getPosition().y,
+                        this->camera->getPosition().z
+                    }))<=0.f) {
                     continue;
                 }
 
@@ -51,25 +55,28 @@ namespace engine {
                     poly.point1,
                     this->camera->getPosition(),
                     this->camera->getViewVector(),
+                    this->camera->getUpVec(),
+                    this->camera->getRightVec(),
                     this->f,
-                    this->cx,
-                    this->cy
+                    WIDTH_WINDOW,HEIGHT_WINDOW
                     );
                 std::optional<simpleStruct::Point2D> p1 = LinMath::projectPoint(
                     poly.point2,
                     this->camera->getPosition(),
                     this->camera->getViewVector(),
+                    this->camera->getUpVec(),
+                    this->camera->getRightVec(),
                     this->f,
-                    this->cx,
-                    this->cy
+                    WIDTH_WINDOW,HEIGHT_WINDOW
                 );
                 std::optional<simpleStruct::Point2D> p2 = LinMath::projectPoint(
                     poly.point3,
                     this->camera->getPosition(),
                     this->camera->getViewVector(),
+                    this->camera->getUpVec(),
+                    this->camera->getRightVec(),
                     this->f,
-                    this->cx,
-                    this->cy
+                    WIDTH_WINDOW,HEIGHT_WINDOW
                 );
 
                 if (p0 == std::nullopt || p1 == std::nullopt || p2 == std::nullopt ) {
@@ -99,4 +106,6 @@ namespace engine {
             }
         }
     }
+
+
 }

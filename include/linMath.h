@@ -34,6 +34,9 @@ namespace LinMath {
     inline float lenVec(simpleStruct::Vector vec) {
         return std::sqrt(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z); // optimize this in nex time sqrt high cost
     }
+    inline float lenMidlPoint(const simpleStruct::Point& point1, const simpleStruct::Point& point2) {
+        return sqrt(point1.x * point2.x + point1.y * point2.y + point1.z * point2.z);
+    }
     inline simpleStruct::Vector normolise(simpleStruct::Vector vec) {
         float lV = lenVec(vec);
         if (lV < 1e-6f) {
@@ -91,9 +94,11 @@ namespace LinMath {
             vec1.z
         }));
     }
+
     inline float conversionToRadian(float degrees) {
         return degrees * std::numbers::pi / 180.0f;
     }
+
     inline simpleStruct::Vector rotateAroundAxis(const simpleStruct::Vector& v, const simpleStruct::Vector& axis, float radians) {
         float cosA = std::cos(radians);
         float sinA = std::sin(radians);
@@ -108,34 +113,40 @@ namespace LinMath {
 
         return simpleStruct::Vector({resX, resY, resZ});
     }
-    inline std::optional<simpleStruct::Point2D> projectPoint(const simpleStruct::Point& worldPoint, const simpleStruct::Point cameraPosition, const simpleStruct::Vector cameraViewVec, float f, int cx, int cy) {
-        float tx = worldPoint.x - cameraPosition.x;
-        float ty = worldPoint.y - cameraPosition.y;
-        float tz = worldPoint.z - cameraPosition.z;
-        simpleStruct::Vector t = { tx, ty, tz };
+    inline std::optional<simpleStruct::Point2D> projectPoint(
+        const simpleStruct::Point& point,
+        const simpleStruct::Point& cameraPosition,
+        const simpleStruct::Vector& cameraViewVec,
+        const simpleStruct::Vector& cameraUpVec,
+        const simpleStruct::Vector& cameraRightVec,
+        float f,
+        int wight,
+        int hight
+    ){
+        //go to camera coordination
+        simpleStruct::Point newPointPosition = point - cameraPosition;
+        auto tVec = normolise(simpleStruct::Vector({newPointPosition.x,newPointPosition.y,newPointPosition.z}));
 
-        simpleStruct::Vector forward = LinMath::normolise(cameraViewVec);
-        simpleStruct::Vector right = LinMath::normolise(LinMath::vecProd(forward, {0, 1, 0}));
-        simpleStruct::Vector up = LinMath::vecProd(right, forward);
+        // replace 0.f on fov
+        if (dot(tVec, cameraViewVec) < 0.0f) return std::nullopt;
 
-        float xCam = LinMath::dot(t, right);
-        float yCam = LinMath::dot(t, up);
-        float zCam = LinMath::dot(t, forward);
+        float dotUp = dot(tVec, cameraUpVec);
+        float dotRight = dot(tVec, cameraRightVec);
 
-        if (zCam < 0.1f) {
-            return std::nullopt;
-        }
+        if (abs(dotUp) == 1.0f || abs(dotRight) == 1.0f) return std::nullopt;
 
-        int xScreen = static_cast<int>((xCam / zCam) * f + cx);
-        int yScreen = static_cast<int>((yCam / zCam) * f + cy);
+        unsigned int displayH = hight/2 + (hight * dotUp);
+        unsigned int displayW = wight/2 + (wight * dotRight);
 
-        return simpleStruct::Point2D({xScreen, yScreen, zCam});
+        return simpleStruct::Point2D(displayW, displayH);
     }
-    inline bool isPixelInsideTriangle(int x, int y,
-                           const simpleStruct::Point2D& p0,
-                           const simpleStruct::Point2D& p1,
-                           const simpleStruct::Point2D& p2)
-    {
+    inline bool isPixelInsideTriangle(
+        int x,
+        int y,
+        const simpleStruct::Point2D& p0,
+        const simpleStruct::Point2D& p1,
+        const simpleStruct::Point2D& p2
+    ){
         float d1 = (x - p1.x) * (p0.y - p1.y) - (p0.x - p1.x) * (y - p1.y);
         float d2 = (x - p2.x) * (p1.y - p2.y) - (p1.x - p2.x) * (y - p2.y);
         float d3 = (x - p0.x) * (p2.y - p0.y) - (p2.x - p0.x) * (y - p0.y);
@@ -163,5 +174,7 @@ namespace LinMath {
 
         return 1.0f / interpolatedInverseZ;
     }
+
+
 }
 #endif //ENGINE_LINMATH_H

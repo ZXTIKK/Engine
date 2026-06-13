@@ -25,7 +25,7 @@ int main() {
     const unsigned int WIDTH = WIDTH_WINDOW;
     const unsigned int HEIGHT = HEIGHT_WINDOW;
     bool CV = false; //for debug
-    bool currentMousePosition = false;
+    bool currentMousePosition = true;
 
     std::vector<int> d;
 
@@ -95,7 +95,7 @@ int main() {
                 d.push_back(deltaX);
             }
             if (deltaY != 0) {
-                camera->rotateVertical(-deltaY);
+                camera->rotateVertical(deltaY);
             }
             sf::Mouse::setPosition(windowCenter, *window);
         }
@@ -107,6 +107,8 @@ int main() {
                 window->close();
             }
             if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+                std::cout << keyPressed << std::endl;
+
                 if (keyPressed->code == sf::Keyboard::Key::Escape) {
                     currentMousePosition = !currentMousePosition;
                     window->setMouseCursorVisible(!currentMousePosition);
@@ -148,6 +150,9 @@ int main() {
                 if (keyPressed->code == sf::Keyboard::Key::F3) {
                     camera->rotateHorizontal(180);
                     camera->rotateVertical(180);
+                }
+                if (keyPressed->code == sf::Keyboard::Key::F4) {
+                    std::cout << *camera << std::endl;
                 }
             }
         }
