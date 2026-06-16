@@ -208,6 +208,15 @@ namespace simpleStruct {
         return os;
     }
 
+    inline std::ostream& operator<<(std::ostream& os, const Point& point) {
+        os << "Point[\n"
+           << "  x: (" << point.x << ")\n"
+           << "  y: (" <<  point.y << ")\n"
+           << "  z: (" << point.z << ")\n"
+           << "]";
+        return os;
+    }
+
     inline std::ostream& operator<<(std::ostream& os, Point2D& point) {
         os << "Vector[\n"
            << "  x: (" << point.x << ")\n"

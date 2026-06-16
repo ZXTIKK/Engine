@@ -22,7 +22,7 @@ namespace LinMath {
          */
         return simpleStruct::Vector({
             vec1.y*vec2.z - vec1.z*vec2.y,
-            vec1.x*vec2.z - vec1.z*vec2.x,
+            vec1.z*vec2.x - vec1.x*vec2.z,
             vec1.x*vec2.y - vec1.y*vec2.x
         });
     }
@@ -125,18 +125,21 @@ namespace LinMath {
     ){
         //go to camera coordination
         simpleStruct::Point newPointPosition = point - cameraPosition;
-        auto tVec = normolise(simpleStruct::Vector({newPointPosition.x,newPointPosition.y,newPointPosition.z}));
+        auto tVec = simpleStruct::Vector({newPointPosition.x,newPointPosition.y,newPointPosition.z});
+
+        auto dotZ = dot(tVec, cameraViewVec);
 
         // replace 0.f on fov
-        if (dot(tVec, cameraViewVec) < 0.0f) return std::nullopt;
+        if (dotZ < 0.0f) return std::nullopt;
 
         float dotUp = dot(tVec, cameraUpVec);
         float dotRight = dot(tVec, cameraRightVec);
 
-        if (abs(dotUp) == 1.0f || abs(dotRight) == 1.0f) return std::nullopt;
+        auto point2dX = dotRight/dotZ;
+        auto point2dY = dotUp/dotZ;
 
-        unsigned int displayH = hight/2 + (hight * dotUp);
-        unsigned int displayW = wight/2 + (wight * dotRight);
+        unsigned int displayH = hight/2.f-f*point2dY;
+        unsigned int displayW = wight/2.f+f*point2dX;
 
         return simpleStruct::Point2D(displayW, displayH);
     }

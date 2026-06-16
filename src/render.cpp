@@ -23,8 +23,7 @@ namespace engine {
         zBuffer(zBuffer)
     {
         this->f = WIDTH_WINDOW/(2*tan(LinMath::conversionToRadian(camera->getFOV())/2));
-        this->cx = WIDTH_WINDOW / 2;
-        this->cy = HEIGHT_WINDOW / 2;
+
     }
 
     void Render::clearScreen() {
@@ -42,12 +41,12 @@ namespace engine {
 
         for (const auto& mesh : *meshes) {
             for (const auto& poly : mesh.getPolygons()) {
-                if ((poly.normal * simpleStruct::Vector(
+                if ((poly.normal * LinMath::normolise(simpleStruct::Vector(
                     {
                         this->camera->getPosition().x,
                         this->camera->getPosition().y,
                         this->camera->getPosition().z
-                    }))<=0.f) {
+                    })))<=0.f) {
                     continue;
                 }
 

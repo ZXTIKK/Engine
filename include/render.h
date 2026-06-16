@@ -44,9 +44,7 @@ namespace engine {
         std::vector<Light>* lights;
         ZBuffer* zBuffer;
         float f;
-        int cx;
-        int cy;
-        int i = 0;
+
 
         void clearScreen();
         void clearZBuffer();

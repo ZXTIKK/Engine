@@ -39,8 +39,8 @@ namespace engine {
     void Camera::findUpAndRightVec() {
         this->rightVec.x = -this->viewVector.z;
         this->rightVec.z = this->viewVector.x;
-        this->upVec = LinMath::vecProd(this->rightVec, this->viewVector);
         this->rightVec = LinMath::normolise(this->rightVec);
+        this->upVec = LinMath::vecProd(this->rightVec, this->viewVector);
         this->upVec = LinMath::normolise(this->upVec);
     }
 

@@ -10,4 +10,16 @@ namespace engine {
     Light::Light(simpleStruct::Point position) {
         this->position = position;
     }
+    Light::Light(simpleStruct::Point position, float intensity) {
+        this->position = position;
+        this->intensity = intensity;
+    }
+
+    void Light::setPositon(simpleStruct::Point position) {
+        //mb add check on verity position
+        this->position = position;
+    }
+    void Light::setIntensity(float intensity) {
+        this->intensity = intensity;
+    }
 }
