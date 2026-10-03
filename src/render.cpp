@@ -41,12 +41,11 @@ namespace engine {
 
         for (const auto& mesh : *meshes) {
             for (const auto& poly : mesh.getPolygons()) {
-                if ((poly.normal * LinMath::normolise(simpleStruct::Vector(
-                    {
-                        this->camera->getPosition().x,
-                        this->camera->getPosition().y,
-                        this->camera->getPosition().z
-                    })))<=0.f) {
+                if ((poly.normal * LinMath::normolise(simpleStruct::Vector({
+                    this->camera->getPosition().x,
+                    this->camera->getPosition().y,
+                    this->camera->getPosition().z
+                }))) <= 0.f) {
                     continue;
                 }
 

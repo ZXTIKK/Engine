@@ -120,28 +120,30 @@ namespace LinMath {
         const simpleStruct::Vector& cameraUpVec,
         const simpleStruct::Vector& cameraRightVec,
         float f,
-        int wight,
-        int hight
+        int width,
+        int height
     ){
-        //go to camera coordination
+        // Переход в систему координат камеры
         simpleStruct::Point newPointPosition = point - cameraPosition;
-        auto tVec = simpleStruct::Vector({newPointPosition.x,newPointPosition.y,newPointPosition.z});
+        auto tVec = simpleStruct::Vector({newPointPosition.x, newPointPosition.y, newPointPosition.z});
 
-        auto dotZ = dot(tVec, cameraViewVec);
+        float dotZ = dot(tVec, cameraViewVec);
 
-        // replace 0.f on fov
-        if (dotZ < 0.0f) return std::nullopt;
+        // Отсекаем точки сзади и слишком близкие к камере (Near Plane Epsilon)
+        if (dotZ <= 0.1f) return std::nullopt;
 
         float dotUp = dot(tVec, cameraUpVec);
         float dotRight = dot(tVec, cameraRightVec);
 
-        auto point2dX = dotRight/dotZ;
-        auto point2dY = dotUp/dotZ;
+        float point2dX = dotRight / dotZ;
+        float point2dY = dotUp / dotZ;
 
-        unsigned int displayH = hight/2.f-f*point2dY;
-        unsigned int displayW = wight/2.f+f*point2dX;
+        // Используем знаковые int, чтобы избежать переполнения при отрицательных координатах
+        int displayH = static_cast<int>(height / 2.0f - f * point2dY);
+        int displayW = static_cast<int>(width / 2.0f + f * point2dX);
 
-        return simpleStruct::Point2D(displayW, displayH);
+        // Передаем dotZ третим аргументом (или заполняем p.z = dotZ)
+        return simpleStruct::Point2D(displayW, displayH, dotZ);
     }
     inline bool isPixelInsideTriangle(
         int x,
